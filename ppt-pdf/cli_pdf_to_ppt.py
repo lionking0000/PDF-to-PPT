@@ -1,6 +1,6 @@
 import os
 import sys
-import PythonMagick
+import pdf2image
 from pptx import Presentation
 from pptx.util import Inches
 from PyPDF2 import PdfFileWriter, PdfFileReader
@@ -11,7 +11,7 @@ class PdfToPpt(object):
     def __init__(self, pdf_file=None, ppt_file=None):
         self.pdf_file = pdf_file
         self.ppt_file = pdf_file.replace('.pdf', '.pptx')
-	self.total_pages = 1
+        self.total_pages = 1
         self.log = Logger.defaults('PdfToPptx')
         self.log.debug('%s \n %s' % (self.pdf_file, self.ppt_file))
 
@@ -28,10 +28,15 @@ class PdfToPpt(object):
             return False
         image_file = pdf_file.replace('.pdf', '.jpg')
         try:
-            pdf_to_img = PythonMagick.Image()
+            '''pdf_to_img = PythonMagick.Image()
             pdf_to_img.density('200')
             pdf_to_img.read(pdf_file)
             pdf_to_img.write(image_file)
+            '''
+            images = pdf2image.convert_from_path(pdf_file,200)
+            for image in images:
+                image.save(image_file, 'JPEG')
+                break
             self.log.info('Image convert passed - %s ' % image_file)
             return True
         except Exception:
@@ -41,7 +46,8 @@ class PdfToPpt(object):
 
     def pdf_splitter(self):
         self.log.info('Called pdf_splitter')
-        input_pdf = PdfFileReader(file(self.pdf_file, 'rb'))
+        #input_pdf = PdfFileReader(file(self.pdf_file, 'rb'))
+        input_pdf = PdfFileReader(open(self.pdf_file, 'rb'))
         self.total_pages = input_pdf.numPages
 
         for page_number in range(self.total_pages):
@@ -50,7 +56,8 @@ class PdfToPpt(object):
             # new filename
             new_pdf = '_%s%s' % (str(page_number+1), '.pdf')
             new_pdf = self.pdf_file.replace('.pdf', new_pdf)
-            file_stream = file(new_pdf, 'wb')
+            #file_stream = file(new_pdf, 'wb')
+            file_stream = open(new_pdf, 'wb')
             output.write(file_stream)
             file_stream.close()
 
